@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omoda-frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: omoda-frontend
+  template:
+    metadata:
+      labels:
+        app: omoda-frontend
+    spec:
+      containers:
+      - name: omoda-frontend
+        image: edwinitdekker/omoda-frontend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:h2:mem:testdb
+        - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+          value: org.h2.Driver
+        - name: SPRING_DATASOURCE_USERNAME
+          value: sa
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: password
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: update
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: omoda-frontend-service
+spec:
+  selector:
+    app: omoda-frontend
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: omoda-backend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: omoda-backend
+  template:
+    metadata:
+      labels:
+        app: omoda-backend
+    spec:
+      containers:
+      - name: omoda-backend
+        image: edwinitdekker/omoda-backend:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_DATASOURCE_URL
+          value: jdbc:h2:mem:testdb
+        - name: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+          value: org.h2.Driver
+        - name: SPRING_DATASOURCE_USERNAME
+          value: sa
+        - name: SPRING_DATASOURCE_PASSWORD
+          value: password
+        - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+          value: update
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: omoda-backend-service
+spec:
+  selector:
+    app: omoda-backend
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+type: Opaque
+data:
+  username: cG9zdGdyZXM=
+  password: cGFzc3dvcmQ=
